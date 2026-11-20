@@ -72,3 +72,61 @@ from rivals.settings import DECISION_COLUMNS
 #    st.subheader "Only them — what we don't sell yet" and st.dataframe of the
 #    gaps rows where `where` is "only them"; then st.subheader "Only us — what sets
 #    us apart" and the "only us" rows.
+
+st.set_page_config(layout="wide")
+st.title("Salt City: Prices and Gaps")
+
+if not os.path.exists(MENUS_FILE):
+    st.info("No menus yet — scrape them on the Scrape page first.")
+    st.stop()
+
+menus = pd.read_csv(MENUS_FILE)
+if os.path.exists(DECISIONS_FILE):
+    decisions = pd.read_csv(DECISIONS_FILE)
+else:
+    decisions = pd.DataFrame(columns=DECISION_COLUMNS)
+matches = match_items(menus, decisions)
+
+waiting = matches[matches["status"] == "unreviewed"]
+if not waiting.empty:
+    st.warning(
+        f"{len(waiting)} rival items still need review and are left out. "
+        "Finish them on the Review Matches page."
+    )
+
+menus = add_canonical(menus, matches)
+prices = price_table(menus)
+comparison = compare_prices(prices)
+gaps = gap_analysis(menus)
+
+prices_tab, gaps_tab = st.tabs(["Prices", "Gaps"])
+
+with prices_tab:
+    below, above = st.columns(2)
+    below.metric(
+        "Priced below the market",
+        int(comparison["our_position"].isin([BELOW_ALL, BELOW_AVERAGE]).sum()),
+    )
+    above.metric(
+        "Priced above the market",
+        int(comparison["our_position"].isin([ABOVE_ALL, ABOVE_AVERAGE]).sum()),
+    )
+
+    products = st.multiselect(
+        "Products",
+        sorted(comparison["canonical"].dropna().unique()),
+        key="products",
+        placeholder="All products",
+    )
+    shown = comparison if not products else comparison[comparison["canonical"].isin(products)]
+    st.dataframe(shown, hide_index=True)
+    st.caption(
+        "👍👍 lower than all of them · 👍 lower than their average · "
+        "👉👈 average · 👎 higher than their average · 👎👎 higher than all of them"
+    )
+
+with gaps_tab:
+    st.subheader("Only them — what we don't sell yet")
+    st.dataframe(gaps[gaps["where"] == "only them"], hide_index=True)
+    st.subheader("Only us — what sets us apart")
+    st.dataframe(gaps[gaps["where"] == "only us"], hide_index=True)
