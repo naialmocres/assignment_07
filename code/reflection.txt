@@ -1,8 +1,10 @@
-Write your reflection here.
+I learned how different scraping techniques fit different pages: CSS selectors and
+inner_text for menu cards, read_html and melt for tables, and waiting for
+JavaScript and crawling linked pages for Canal Street. Fuzzy matching helped
+normalize menu names, but scores alone were not reliable, so thresholds and a
+human in the loop were important. In analysis, a merge indicator made it clear
+which items were only ours, only rivals’, or shared.
 
-See reflection.md for what makes a good reflection — be specific, use the
-terminology from this assignment (HTML element, CSS selector, class and id
-selectors, sibling selector, inner_text, attribute, headless browser, waiting for
-JavaScript, crawling, pagination, read_html, melt, fuzzy matching, normalization,
-threshold, human in the loop, merge indicator, gap analysis), and make it
-actionable.
+I found asynchronous page updates and preserving the expected data shape most
+challenging. I’ll practice by debugging Playwright selectors and testing small
+pandas merges, especially their row order and missing values.
